@@ -5,15 +5,12 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(lattice)
-```
+
 
 ## Loading and preprocessing the data
 
-```{r cars}
+
+```r
 if (!file.exists("activity_data.zip")) {
   download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",
     destfile = "activity_data.zip")
@@ -21,13 +18,13 @@ if (!file.exists("activity_data.zip")) {
 }
 activity <- read.csv("activity.csv",
                      colClasses = c("numeric", "Date", "numeric"))
-        
 ```
 
 ## What is mean total number of steps taken per day?
 
 Histogram of the total number of steps taken each day
-```{r, message =F}
+
+```r
 activity%>%
         group_by(date)%>%
         summarise(total_steps = sum(steps))%>%
@@ -37,8 +34,15 @@ activity%>%
         labs(title = "Histogram")
 ```
 
+```
+## Warning: Removed 8 rows containing non-finite values (stat_bin).
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
 Mean number of steps taken per day is
-```{r}
+
+```r
 total_steps_per_day <-  activity %>%
   group_by(date) %>%
   summarise(
@@ -48,16 +52,26 @@ total_steps_per_day <-  activity %>%
 mean(total_steps_per_day$total_steps, na.rm=T)
 ```
 
+```
+## [1] 10766.19
+```
+
 
 Median number of steps taken per day is
-```{r}
+
+```r
 median(total_steps_per_day$total_steps, na.rm=T)
+```
+
+```
+## [1] 10765
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 activity%>%
         group_by(interval)%>%
         summarise(total_steps_by_interval = sum(steps, na.rm=T))%>%
@@ -68,8 +82,11 @@ activity%>%
         labs(title = "Time series plot")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 # 5. The 5-minute interval that, on average, contains the maximum number of steps
-```{r}
+
+```r
  activity%>%
         group_by(interval)%>%
         summarise(total_steps_by_interval = sum(steps, na.rm=T))%>%
@@ -77,15 +94,28 @@ activity%>%
         select(interval)
 ```
 
+```
+## # A tibble: 1 x 1
+##   interval
+##      <dbl>
+## 1      835
+```
+
 ## Imputing missing values
 
 Total number of missing values in the dataset
-```{r}
+
+```r
  sum(is.na(activity$steps))
 ```
 
+```
+## [1] 2304
+```
+
 Creating a new dataset that is equal to the original dataset but with the missing data filled in using the mean for that 5-minute interval.
-```{r}
+
+```r
 mean_activity_per_interval <- activity%>%
         group_by(interval)%>%
         summarise(mean_steps_by_interval = mean(steps, na.rm=T))
@@ -102,7 +132,8 @@ rm(missing_activity, mean_activity_per_interval, i)
 ```
 # 7. Histogram of the total number of steps taken each day after missing values are imputed
 
-```{r, message = F}
+
+```r
 complete_activity%>%
         group_by(date)%>%
         summarise(total_steps = sum(steps))%>%
@@ -112,8 +143,11 @@ complete_activity%>%
         labs(title = "Histogram")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
 Mean number of steps taken per day is
-```{r}
+
+```r
 total_steps_per_day <-  complete_activity %>%
   group_by(date) %>%
   summarise(
@@ -123,10 +157,19 @@ total_steps_per_day <-  complete_activity %>%
 mean(total_steps_per_day$total_steps, na.rm=T)
 ```
 
+```
+## [1] 10766.19
+```
+
 
 Median number of steps taken per day is
-```{r}
+
+```r
 median(total_steps_per_day$total_steps, na.rm=T)
+```
+
+```
+## [1] 10766.19
 ```
 Imputation of missing values shifted mean and median to the mean of the intially observed data. This is expected since the means of respective intervals were used in the imputation. 
 
@@ -134,7 +177,8 @@ Imputation of missing values shifted mean and median to the mean of the intially
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Creating a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-```{r}
+
+```r
 complete_activity <-  
         complete_activity%>%
         mutate(weekday = weekdays(date),
@@ -143,7 +187,8 @@ complete_activity <-
 ```
 
 Plotting
-```{r}
+
+```r
 mean_steps_complete_activity <-complete_activity %>%
         group_by(weekday_weekend, interval)%>%
         summarise(mean_steps = mean(steps))
@@ -152,7 +197,11 @@ lattice::xyplot(mean_steps ~ interval| weekday_weekend,
                 type="l",
                 ylab="Number of steps", xlab="Interval",
                 layout=c(1,2))
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+```r
 png("panelplot.png", height=480, width=480, units="px")
 lattice::xyplot(mean_steps ~ interval| weekday_weekend,
                 data = mean_steps_complete_activity,
@@ -160,4 +209,9 @@ lattice::xyplot(mean_steps ~ interval| weekday_weekend,
                 ylab="Number of steps", xlab="Interval",
                 layout=c(1,2))
 dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
 ```
